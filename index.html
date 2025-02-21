@@ -1,122 +1,148 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Opposite Scrolling - Fixed Offset</title>
+  <meta charset="UTF-8" />
+  <title>Opposite Scrolling - 4 Slides, Top/Bottom Alignment</title>
   <style>
-    /* -----------------------------
-       1) Lock the page from scrolling
-       so we only scroll inside .top & .bottom
-    ------------------------------ */
+    /* 1) Lock the entire page from scrolling */
     html, body {
       margin: 0;
       padding: 0;
       height: 100%;
-      overflow: hidden; /* no page scrollbars */
+      overflow: hidden; /* no page scrollbar */
       font-family: sans-serif;
     }
 
-    /* -----------------------------
-       2) Each container is half the viewport
-       height (50vh) with horizontal scrolling.
-    ------------------------------ */
+    /* 2) Each .container is half the screen (50vh) with horizontal scrolling */
     .container {
       width: 100%;
       height: 50vh;
-      overflow-x: scroll;   /* horizontal scroll */
-      overflow-y: hidden;   /* hide vertical scroll */
-      white-space: nowrap;  /* keep child sections in one horizontal row */
+      overflow-x: scroll;    /* horizontal scroll only */
+      overflow-y: hidden;    
+      white-space: nowrap;   /* keep child slides in one row */
 
-      /* Hide scrollbars visually */
-      -ms-overflow-style: none; /* IE/Edge */
-      scrollbar-width: none;    /* Firefox */
+      /* Hide scrollbars visually (while preserving scrolling) */
+      -ms-overflow-style: none;   /* IE/Edge */
+      scrollbar-width: none;      /* Firefox */
     }
     .container::-webkit-scrollbar {
-      display: none;           /* Chrome/Safari/Opera */
+      display: none;             /* Chrome/Safari/Opera */
     }
 
-    /* The content row is 2 "slides" wide => 2 * 100vw = 200vw. */
+    /* 3) The .content row has 4 slides => 4 * 100vw = 400vw */
     .content {
-      width: 200vw; 
+      width: 400vw; 
       height: 100%;
-      display: flex;    /* put .section blocks side by side */
+      display: flex; /* place .section elements side-by-side */
     }
 
-    /* Each section is 100vw wide, no shrinking. */
+    /* Each slide is 100vw wide, no shrinking */
     .section {
       width: 100vw;
       flex-shrink: 0;
+
       display: flex;
-      /* Center text horizontally & vertically */
-      align-items: center; 
-      justify-content: center;
+      justify-content: center; /* center horizontally */
       border: 1px solid rgba(0,0,0,0.1);
     }
-    
-    /*
-      TOP container’s sections → align text at bottom (flex-end).
-      BOTTOM container’s sections → align text at top (flex-start).
-      This sets vertical alignment differently for the top vs. bottom halves.
-    */
+
+    /* TOP container’s slides → align text at bottom (flex-end) */
     .top .section {
-      align-items: flex-end; /* vertically bottom */
-    }
-    .bottom .section {
-      align-items: flex-start; /* vertically top */
+      align-items: flex-end;
     }
 
-    /* Different backgrounds for each 100vw "slide" */
+    /* BOTTOM container’s slides → align text at top (flex-start) */
+    .bottom .section {
+      align-items: flex-start;
+    }
+
+    /* Optional: different background colors for each of the 4 slides */
     .section:nth-child(1) { background: #cce5ff; }
     .section:nth-child(2) { background: #ffe5cc; }
+    .section:nth-child(3) { background: #e5ffcc; }
+    .section:nth-child(4) { background: #ffe5f2; }
 
-    /* Slightly bigger text inside each section */
+    /* Text styling */
     .section span {
       font-size: 2rem;
       color: #333;
       text-align: center;
       line-height: 1.4;
+      margin: 1rem; /* some spacing from the edge */
     }
   </style>
 </head>
 <body>
 
-  <!-- TOP half: scroll left → right -->
+  <!-- TOP container (scrolls left → right). Aligned at bottom. -->
   <div class="container top">
     <div class="content">
-      <!-- 1st slide (left) -->
+      <!-- Slide 1 (leftmost) -->
       <div class="section">
         <span>
-          <h1>Heading 1234 (Top #1)</h1>
-          1 person, 2 focuses<br>
-          FOCUS 1
+          <h1>Heading Top #1</h1>
+          Content at the bottom of the slide
         </span>
       </div>
-      <!-- 2nd slide (right) -->
+
+      <!-- Slide 2 -->
       <div class="section">
         <span>
-          <h1>Heading 5678 (Top #2)</h1>
-          Another text block<br>
-          Something else here
+          <h1>Heading Top #2</h1>
+          Another block of text
+        </span>
+      </div>
+
+      <!-- Slide 3 -->
+      <div class="section">
+        <span>
+          <h1>Heading Top #3</h1>
+          Third slide
+        </span>
+      </div>
+
+      <!-- Slide 4 (rightmost) -->
+      <div class="section">
+        <span>
+          <h1>Heading Top #4</h1>
+          Rightmost block of the top container
         </span>
       </div>
     </div>
   </div>
 
-  <!-- BOTTOM half: scroll right → left -->
+  <!-- BOTTOM container (scrolls right → left). Aligned at top. -->
   <div class="container bottom">
     <div class="content">
-      <!-- 1st slide (left) -->
+      <!-- Slide 1 (leftmost) -->
       <div class="section">
         <span>
-          <h1>Focus 2 (Bottom #1)</h1>
-          Left slide
+          <h1>Heading Bottom #1</h1>
+          Top-aligned content
         </span>
       </div>
-      <!-- 2nd slide (right) -->
+
+      <!-- Slide 2 -->
       <div class="section">
         <span>
-          <h1>Focus 2 (Bottom #2)</h1>
-          Right slide
+          <h1>Heading Bottom #2</h1>
+          Another block
+        </span>
+      </div>
+
+      <!-- Slide 3 -->
+      <div class="section">
+        <span>
+          <h1>Heading Bottom #3</h1>
+          Third slide
+        </span>
+      </div>
+
+      <!-- Slide 4 (rightmost) -->
+      <div class="section">
+        <span>
+          <h1>Heading Bottom #4</h1>
+          Rightmost block of the bottom container
         </span>
       </div>
     </div>
@@ -129,9 +155,8 @@
     let isSyncing = false;
 
     /**
-     * Sync scroll in opposite directions:
-     *   topContainer.scrollLeft = x
-     *   bottomContainer.scrollLeft = (maxScrollBottom - x)
+     * Keep the top & bottom scroll positions in sync but opposite.
+     * If topContainer.scrollLeft = X, then bottomContainer = maxScroll - X.
      */
     function handleScroll(e) {
       if (isSyncing) return;
@@ -149,8 +174,8 @@
     }
 
     /**
-     * Convert vertical wheel events into horizontal scroll.
-     * For the top container: scrolling "down" => scrollLeft += deltaY
+     * Convert vertical wheel events to horizontal scroll on the top container:
+     * Scrolling "down" => topContainer.scrollLeft += deltaY
      */
     function handleWheelTop(e) {
       e.preventDefault();
@@ -162,7 +187,7 @@
     }
 
     /**
-     * For the bottom container: scrolling "down" => scrollLeft -= deltaY
+     * For the bottom container: scrolling "down" => bottomContainer.scrollLeft -= deltaY
      */
     function handleWheelBottom(e) {
       e.preventDefault();
@@ -173,14 +198,15 @@
       }
     }
 
-    // Listen to scroll & wheel events
+    // Listen for scroll & wheel events
     topContainer.addEventListener('scroll', handleScroll);
     bottomContainer.addEventListener('scroll', handleScroll);
 
     topContainer.addEventListener('wheel', handleWheelTop, { passive: false });
     bottomContainer.addEventListener('wheel', handleWheelBottom, { passive: false });
 
-    // On load, set top to left edge (0), bottom to right edge (maxScroll)
+    // On load, top container starts at 0 (far left),
+    // bottom container starts at maxScroll (far right).
     window.addEventListener('load', () => {
       topContainer.scrollLeft = 0;
       const maxScroll = bottomContainer.scrollWidth - bottomContainer.clientWidth;
