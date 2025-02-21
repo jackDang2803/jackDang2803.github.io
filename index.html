@@ -2,26 +2,32 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Opposite Scrolling (First/Last 100vw, Vertical Alignment)</title>
+  <title>Opposite Scrolling - Fixed Offset</title>
   <style>
-    /* Basic reset & full viewport height */
+    /* -----------------------------
+       1) Lock the page from scrolling
+       so we only scroll inside .top & .bottom
+    ------------------------------ */
     html, body {
       margin: 0;
       padding: 0;
       height: 100%;
-      overflow: hidden; /* We only scroll within the .container elements */
+      overflow: hidden; /* no page scrollbars */
       font-family: sans-serif;
     }
 
-    /* Each container is half the window's height (50vh). */
+    /* -----------------------------
+       2) Each container is half the viewport
+       height (50vh) with horizontal scrolling.
+    ------------------------------ */
     .container {
       width: 100%;
       height: 50vh;
-      overflow-x: scroll;    /* Horizontal scrolling */
-      overflow-y: hidden;    /* Hide vertical scrollbar */
-      white-space: nowrap;   /* Keep child "sections" side by side horizontally */
+      overflow-x: scroll;   /* horizontal scroll */
+      overflow-y: hidden;   /* hide vertical scroll */
+      white-space: nowrap;  /* keep child sections in one horizontal row */
 
-      /* Hide scrollbars visually across major browsers */
+      /* Hide scrollbars visually */
       -ms-overflow-style: none; /* IE/Edge */
       scrollbar-width: none;    /* Firefox */
     }
@@ -29,27 +35,24 @@
       display: none;           /* Chrome/Safari/Opera */
     }
 
-    /* Each .content is 400vw wide, containing 4 "section" blocks of 100vw each. */
+    /* The content row is 2 "slides" wide => 2 * 100vw = 200vw. */
     .content {
-      width: 400vw;
+      width: 200vw; 
       height: 100%;
-      display: flex;     /* So our .section elements line up horizontally */
+      display: flex;    /* put .section blocks side by side */
     }
 
-    /* 
-      Each .section is exactly 100vw wide and does not shrink below that.
-      We use flex to center text horizontally. 
-      We'll handle vertical alignment separately for each container (top/bottom).
-    */
+    /* Each section is 100vw wide, no shrinking. */
     .section {
       width: 100vw;
-      flex-shrink: 0;       
-      display: flex;        
-      justify-content: center;  /* horizontally center */
-      padding: 1rem;
+      flex-shrink: 0;
+      display: flex;
+      /* Center text horizontally & vertically */
+      align-items: center; 
+      justify-content: center;
       border: 1px solid rgba(0,0,0,0.1);
     }
-
+    
     /*
       TOP container’s sections → align text at bottom (flex-end).
       BOTTOM container’s sections → align text at top (flex-start).
@@ -62,13 +65,11 @@
       align-items: flex-start; /* vertically top */
     }
 
-    /* Just some background colors to differentiate each 100vw section */
-    .section:nth-child(1) { background: #cce5ff; }  /* leftmost 100vw */
+    /* Different backgrounds for each 100vw "slide" */
+    .section:nth-child(1) { background: #cce5ff; }
     .section:nth-child(2) { background: #ffe5cc; }
-    .section:nth-child(3) { background: #e5ffcc; }
-    .section:nth-child(4) { background: #ffe5f2; }  /* rightmost 100vw */
 
-    /* Text style inside each section */
+    /* Slightly bigger text inside each section */
     .section span {
       font-size: 2rem;
       color: #333;
@@ -79,36 +80,43 @@
 </head>
 <body>
 
-  <!-- TOP half container (scrolls left→right) -->
+  <!-- TOP half: scroll left → right -->
   <div class="container top">
     <div class="content">
-      <!-- 4 horizontal sections, each 100vw wide -->
+      <!-- 1st slide (left) -->
       <div class="section">
-        <!-- TOP text in the first 100vw, horizontally centered, vertically at the bottom -->
         <span>
-            <h1>Heading 1234</h1>
+          <h1>Heading 1234 (Top #1)</h1>
           1 person, 2 focuses<br>
           FOCUS 1
         </span>
       </div>
-      <div class="section"></div>
-      <div class="section"></div>
-      <div class="section"></div>
+      <!-- 2nd slide (right) -->
+      <div class="section">
+        <span>
+          <h1>Heading 5678 (Top #2)</h1>
+          Another text block<br>
+          Something else here
+        </span>
+      </div>
     </div>
   </div>
 
-  <!-- BOTTOM half container (scrolls right→left) -->
+  <!-- BOTTOM half: scroll right → left -->
   <div class="container bottom">
     <div class="content">
-      <div class="section"></div>
-      <div class="section"></div>
-      <div class="section"></div>
+      <!-- 1st slide (left) -->
       <div class="section">
-        <!-- BOTTOM text in the last 100vw, horizontally centered, vertically at the top -->
         <span>
-          FOCUS 2<br>
-          (Centered horizontally, aligned at container top)<br>
-          Last 100vw slice
+          <h1>Focus 2 (Bottom #1)</h1>
+          Left slide
+        </span>
+      </div>
+      <!-- 2nd slide (right) -->
+      <div class="section">
+        <span>
+          <h1>Focus 2 (Bottom #2)</h1>
+          Right slide
         </span>
       </div>
     </div>
@@ -118,12 +126,12 @@
     const topContainer = document.querySelector('.top');
     const bottomContainer = document.querySelector('.bottom');
 
-    // Prevent infinite loop while syncing
     let isSyncing = false;
 
-    /** 
-     * Opposite-scrolling sync: 
-     * when one container scrolls, the other = maxScroll - scrollLeft
+    /**
+     * Sync scroll in opposite directions:
+     *   topContainer.scrollLeft = x
+     *   bottomContainer.scrollLeft = (maxScrollBottom - x)
      */
     function handleScroll(e) {
       if (isSyncing) return;
@@ -141,44 +149,41 @@
     }
 
     /**
-     * Convert vertical wheel movement into horizontal scroll for the TOP container:
-     * Scrolling down => left→right => scrollLeft += deltaY
+     * Convert vertical wheel events into horizontal scroll.
+     * For the top container: scrolling "down" => scrollLeft += deltaY
      */
     function handleWheelTop(e) {
-      e.preventDefault(); // stop normal vertical scroll
+      e.preventDefault();
       const old = topContainer.scrollLeft;
       topContainer.scrollLeft += e.deltaY;
-      if (topContainer.scrollLeft !== old) handleScroll({ target: topContainer });
+      if (topContainer.scrollLeft !== old) {
+        handleScroll({ target: topContainer });
+      }
     }
 
     /**
-     * Convert vertical wheel movement into horizontal scroll for the BOTTOM container:
-     * Scrolling down => right→left => scrollLeft -= deltaY
+     * For the bottom container: scrolling "down" => scrollLeft -= deltaY
      */
     function handleWheelBottom(e) {
       e.preventDefault();
       const old = bottomContainer.scrollLeft;
       bottomContainer.scrollLeft -= e.deltaY;
-      if (bottomContainer.scrollLeft !== old) handleScroll({ target: bottomContainer });
+      if (bottomContainer.scrollLeft !== old) {
+        handleScroll({ target: bottomContainer });
+      }
     }
 
-    // Listen for "scroll" events (e.g. trackpad horizontal swipes)
+    // Listen to scroll & wheel events
     topContainer.addEventListener('scroll', handleScroll);
     bottomContainer.addEventListener('scroll', handleScroll);
 
-    // Listen for wheel events
     topContainer.addEventListener('wheel', handleWheelTop, { passive: false });
     bottomContainer.addEventListener('wheel', handleWheelBottom, { passive: false });
 
-    // On load:
-    //  - TOP container sees its first 100vw => scrollLeft = 0
-    //  - BOTTOM container sees its last 100vw => scrollLeft = 300vw
+    // On load, set top to left edge (0), bottom to right edge (maxScroll)
     window.addEventListener('load', () => {
-      // Top at far left
       topContainer.scrollLeft = 0;
-
-      // Bottom at far right
-      const maxScroll = bottomContainer.scrollWidth - bottomContainer.clientWidth; // ~300vw in px
+      const maxScroll = bottomContainer.scrollWidth - bottomContainer.clientWidth;
       bottomContainer.scrollLeft = maxScroll;
     });
   </script>
